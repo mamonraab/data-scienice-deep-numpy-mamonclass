@@ -7,12 +7,10 @@ class mamonAnn():
         self.b = []
         self.hedins = []
     def Layers(self , inpt_size , hdeins , output_size):
-        # wights init
         for i in xrange(len(hdeins)):
             if i == 0:
                 self.W.append(np.random.randn(inpt_size, hdeins[i]) / np.sqrt(inpt_size + hdeins[i]))
                 self.b.append(np.zeros(hdeins[i]))
-            #elif i == len(hdeins)-1:
             else:
                 self.W.append(np.random.randn(hdeins[i-1], hdeins[i]) / np.sqrt(hdeins[i-1] + hdeins[i]))
                 self.b.append(np.zeros(hdeins[i]))
@@ -31,8 +29,6 @@ class mamonAnn():
         self.out=calulate_layers(self.hedins[-1] , self.W[-1] , self.b[-1] , lactive)
     def back_train(self ,X , T , lr , reg):
         regularization = reg
-
-        #S_y = T - self.out #S_final(self.out , T)
         T=T.reshape(self.out.shape)
         S_y = T - self.out
         xc = self.hedins[-1].T.dot(S_y)
@@ -45,11 +41,6 @@ class mamonAnn():
         S_yold = S_y
         W2 = self.W[-1]
         # gradient descent
-        #W2 -= lr*self.hedins[-1].T.dot(self.out - T)
-        #b2 -= learning_rate*(pYtrain - Ytrain_ind).sum(axis=0)
-        #dZ = (pYtrain - Ytrain_ind).dot(W2.T) * (1 - Ztrain*Ztrain)
-        #W1 -= learning_rate*Xtrain.T.dot(dZ)
-        #b1 -= learning_rate*dZ.sum(axis=0)
         for i in xrange(len(self.hedins)-1,-1,-1):
 
             if i == 0:
@@ -65,24 +56,17 @@ class mamonAnn():
     def fit(self,X,T,forlong , prnt,lr,batch ,reg , factive , mid , last , LL):
         last_error_rate = None
         for trn in xrange(forlong):
-        #I , j = X.shape
-        #for i in xrange(I):
             self.farowrds(X,factive , mid , last)
             ll = cost(T, self.out)
             LL.append(ll)
-            #ll = cross_entropy(T, self.out)
             er = np.mean(self.out != T)
             if er != last_error_rate:
                 last_error_rate = er
             Y_old = self.out
-            #if i % batch == 0:
             self.back_train(X , T,lr ,reg)
-            #if np.array_equal(self.out,Y_old):
-                #print("cant improve more itration num is ",trn)
-                #return self.out
+
             if trn % prnt == 0:
                 print ll
-                #print "  itration  ",trn,'target is ',T ,'predcation is ',self.out
 
 def classification_rate(Y, P):
     return np.mean(Y == P)
@@ -110,12 +94,10 @@ def delta_Fast(lr ,T , Y , inpt , layer , Z , W2):
         dZ = lr * Z * (1 - Z)
         ret2 = inpt.T.dot(dZ)
         return ret2
-#retrun array of final S
 def S_final(Y , Target):
     S = law(Y , Target)
     return S
 
-#return array of S for any layer except the final
 def S_anylayer(layer , layer_w , next_s):
     S = np.zeros(layer.shape)
     K , _  = layer.shape
@@ -184,7 +166,6 @@ def activation(act_type , a):
     elif act_type == 'relu':
         result = a * (a > 0)
     else:
-        #these is sigmoid
         result = 1 / (1 + np.exp(-a))
     return result
 
@@ -196,19 +177,15 @@ def normalize(data):
     return (data - data.mean()) / data.std()
 
 def catgoricl(data , place):
-    # doing one hote encoder for day time
     from sklearn.preprocessing import OneHotEncoder
-    #this OneHotEncoder  the param categorical_features mean the colmn that need to be  processed
     onehotencoder = OneHotEncoder(categorical_features = [place])
     return onehotencoder.fit_transform(data).toarray()
 
 
 def catg2(data , place):
     size = len(set(data[:,place]))
-    #size = size - 1
     N , D = data.shape
     z = np.zeros((N ,size ))
-    #print z.shape
     z[np.arange(N) ,data[:,place].astype(np.int32) ] = 1
     x2 = np.zeros((N,D+size-1)).astype(np.float32)
     x2[:,0:(place)] = data[:,0:(place)]
